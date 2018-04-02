@@ -21,6 +21,10 @@ var _system = function(opts) {
    }
 
 
+   sys.systemWorking = function() {
+      return sys.parts.fetchXHR;
+   }
+
    sys.base.parts = function(opts) {
       var ps = this;
 
