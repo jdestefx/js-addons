@@ -31,6 +31,7 @@ var _system = function(opts) {
       $.extend(this, {
          fetchAsync: false,
          srcHtml: "parts.html",
+         integrateFunction: "integratev2",
       }, opts);
 
       // inits
@@ -38,6 +39,8 @@ var _system = function(opts) {
       ps.fetchXHR = undefined;
 
       ps.construct = function() {
+         ps.integrate = ps[ps.integrateFunction];
+
          ps.fetchParts();
       }
 
@@ -87,7 +90,45 @@ var _system = function(opts) {
          return selectedPart;
       }
 
-      ps.integrate = function(selector, addClass = "") {
+      ps.integrate = $.noop;
+
+      ps.integratev2 = function(opts) {
+         $.extend({
+            bind: null,
+            to: null,
+            dest: null,
+
+            addClass: null,
+         }, opts);
+
+         if (opts.bind==null) return null;
+
+         var selectedPart = ps.partsRepo.find(opts.bind);
+
+         if (selectedPart.length!=0 && selectedPart.children().length>0) {
+            selectedPart = selectedPart.clone();
+            if (opts.addClass != "") selectedPart.toggleClass(opts.addClass);
+            //selectedPart = selectedPart.children().first().clone();
+            //selectedPart.find("*").andSelf().each(function() {
+            selectedPart.find("*").each(function() {
+               var elem = this;
+               if (typeof $(elem).attr("data-js-name")!="undefined") opts.to[$(elem).attr("data-js-name")] = $(elem);
+               if (typeof $(elem).attr("data-js-events")!="undefined") ps.setupEvents.apply(opts.to, [$(elem)]);
+            });
+         }
+
+         var ret = selectedPart.children();
+
+         if (ret[0]==undefined) console.warn("Tried to integrate, but there was no result.");
+
+         if (opts.inside!==null) ret.appendTo(opts.inside);
+
+         if (opts.as!=="null") opts.to[opts.as] = ret;
+
+         return ret;
+      }
+
+      ps.integratev1 = function(selector, addClass = "") {
          var owner = this;
          var selectedPart = ps.partsRepo.find(selector);
 
